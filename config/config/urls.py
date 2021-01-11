@@ -22,7 +22,8 @@ from apps.Almacen.views import*
 from apps.Almacen.urls import*
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('Almacen/', include('apps.Almacen.urls')),
+    path('', include('apps.Almacen.urls')),
  ]
 
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.STATIC_ROOT)

@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+from django.contrib.messages import constants as message_constants
+from six import python_2_unicode_compatible
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,19 +35,31 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    #administrador interfaz
     'admin_interface',
     'colorfield',
+    #Clases incluidas
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #formularios
+    #'multiselectfield',
+    'betterforms',
     'crispy_forms',
+    'materializecssform',
+    #Notificaciones
+    'webpush',
+    'django_twilio',
+
+    #mi app
     'apps.Almacen',
-    
+    'import_export',
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+IMPORT_EXPORT_USE_TRANSACTIONS = True
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -82,7 +97,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME':'SMARTID',
+        'NAME':'Smart',
         'USER':'postgres',
         'PASSWORD':'fairyoak2*',
         'HOST':'localhost',
@@ -125,6 +140,13 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+#Configuarion de email
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=""
+EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST_PASSWORD=""
 
 
 # Static files (CSS, JavaScript, Images)
@@ -134,8 +156,32 @@ STATIC_URL = '/static/'
 #STATICFILES_DIRS = [
     #os.path.join(BASE_DIR, 'static')
 #]
+
 MEDIA_URL = '/media/'
+STATIC_ROOT= os.path.join(BASE_DIR,'static')
 MEDIA_ROOT= os.path.join(os.path.dirname(BASE_DIR),"media_root")
 
+LOGIN_REDIRECT_URL='sesion'
 
 CRISPY_INSTALLED_PACK= 'bootstrap4'
+
+MESSAGE_TAGS={
+    message_constants.DEBUG:'debug',
+    message_constants.INFO:'info',
+    message_constants.SUCCESS:'success',
+    message_constants.WARNING:'warning',
+    message_constants.ERROR:'danger',
+
+}
+
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": "BDnAlD2XMsaUD0AGYgpNnlGnVKTHegSv9-KOFt5jrs9s67htwz2pb5xhX5rC9AJMXZUhvhdFLkiOwPlysfTnwFA",
+    "VAPID_PRIVATE_KEY": "cl0Xc5J9VuhltI3sd_mKrkyFjGCxzxOmHsvUwPFvq_E",
+    "VAPID_ADMIN_EMAIL": "michellecharles373@gmail.com"
+}
+TWILIO_ACCOUNT_SID = 'AC6882f5c66eedb6b8a6e733b24df48618'
+TWILIO_AUTH_TOKEN = '70a0acdeae855e8f4843b735c8a48de2'
+DJANGO_TWILIO_BLACKLIST_CHECK = True
+DJANGO_TWILIO_FORGERY_PROTECTION = False
+

@@ -7,18 +7,22 @@ from django.core.files import File
 from picklefield.fields import PickledObjectField
 from django import forms
 from django.contrib.auth.models import User
+#from multiselectfield import MultiSelectField
+import os
+from twilio.rest import Client
+
 
 # Create your models here.
 class Computadora(models.Model):
     no_Serie_Co= models.CharField(primary_key=True,max_length=30,verbose_name="No. de serie")
     nombre_Co= models.CharField(max_length=30,verbose_name="Nombre")
     marca=models.CharField(max_length=10)
-    modelo_com=models.CharField(max_length=30)
+    modelo_com=models.CharField(max_length=30,verbose_name="Modelo")
     tipo_Choice=(
         ('pce','pcescritorio'),
         ('lap','lap'),
     )
-    tipo_com=models.CharField(max_length=3,choices=tipo_Choice)
+    tipo_com=models.CharField(max_length=3,choices=tipo_Choice,verbose_name="Tipo")
     Status_Choice=(
         ("disponible","disponible"),
         ("servicio","servicio"),
@@ -48,11 +52,12 @@ class Computadora(models.Model):
     def __str__(self):
         return self.no_Serie_Co
     def save(self, *args, **kwargs):
-        qrcode_img = qrcode.make(self.nombre_Co)
-        canvas = Image.new('RGB', (290, 290), 'white')
+        dicttionary = {"Num.Serie": self.no_Serie_Co, "Nombre": self.nombre_Co, "Marca":self.marca,"Modelo":self.modelo_com,"Tipo":self.tipo_com,"Disco Duro":self.Disco_Duro,"Procesador":self.Procesador,"Ram":self.Ram}
+        qrcode_img = qrcode.make(dicttionary)
+        canvas = Image.new('RGB', (590, 590), 'white')
         draw= ImageDraw.Draw(canvas)
         canvas.paste(qrcode_img)
-        fnombre_Co = f'qr_code-{self.nombre_Co}.png'
+        fnombre_Co = f'qr_code-{dicttionary}.png'
         buffer= BytesIO()
         canvas.save(buffer,'PNG')
         self.qr_code.save(fnombre_Co, File(buffer), save=False)
@@ -463,6 +468,127 @@ class Prestamo_Eq_Pub(models.Model):
     class Meta:
         verbose_name = 'Prestamos de Equipo de video'
         verbose_name_plural = 'Prestamos de Equipo de video'
+
+
+class Solicitud_Equipo(models.Model):
+    nombre_Emp = models.CharField(
+        max_length=30, verbose_name="Nombre")
+    ApellidoP_Emp = models.CharField(
+        max_length=30, verbose_name="Apellido Paterno")
+    ApellidoM_Emp = models.CharField(
+        max_length=30, verbose_name="Apellido Materno")
+    Area = models.ForeignKey(Area, on_delete=models.CASCADE)
+    Proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+    tipo_Choice = (
+        ('pce', 'pcescritorio'),
+        ('lap', 'lap'),
+    )
+    tipo_com = models.CharField(max_length=3, choices=tipo_Choice,verbose_name="Tipo de computadora")
+    Office_Choice = (
+        ("O365", "Office365"),
+        ("Win7", "Windows7"),
+    )
+    Office = models.CharField(max_length=4, choices=Office_Choice)
+    App_Choices=(
+        ('ERP','SAP 7.4'),
+        ('Costos','Costos unitarios'),
+        ('Autocad','Autocad 2018'),
+        ('Adobe reader','Adobe'),
+        ('VPN','Cliente VPN'),
+        ('DoPDF','DoPDF'),
+        ('7-zip','7-zip'),
+        ('Control','Software de control Proyecto'),
+        ('Diagramación','Software de diagramación'),
+    )
+    teclado_Choices=(
+        ('aplica','aplica'),
+        ('no aplica','no aplica'),
+    )
+    teclado=models.CharField(max_length=15,choices=teclado_Choices)
+    monitor_Choices = (
+        ('aplica', 'aplica'),
+        ('no aplica', 'no aplica'),
+    )
+    monitor = models.CharField(max_length=15, choices=monitor_Choices)
+    #Aplicaciones=MultiSelectField(choices=App_Choices)
+    Equipo_Adicional_choices=(
+        ('IP', 'Telefonia IP'),
+        ('Movil','Celular'),
+        ('Radio', 'Radio'),
+        ('N/A','No aplica'),
+        )
+    #Equipo_Adicional = MultiSelectField(choices=Equipo_Adicional_choices)
+    Status_choice=(
+        ('Solicitado','Solicitado'),
+        ('En proceso','En proceso'),
+        ('Atendida','Atendida'),
+    )
+    Status= models.CharField(max_length=15,choices=Status_choice)
+    Fecha_inicio=models.DateField(default=datetime.date.today,verbose_name='Fecha de entrega de equipo')
+
+    class Meta:
+        verbose_name = 'Solicitud de Equipo'
+        verbose_name_plural = 'Solicitud de Equipo'
+    def save(self, *args, **kwargs):
+        if self.Status=='Solicitado':
+            account_sid = os.environ.get('AC6882f5c66eedb6b8a6e733b24df48618')
+            auth_token = os.environ.get('70a0acdeae855e8f4843b735c8a48de2')
+            client = Client('AC6882f5c66eedb6b8a6e733b24df48618',
+                            '70a0acdeae855e8f4843b735c8a48de2')
+            message = client.messages.create(
+                body='Se ha enviado una solicitud de computadoras',
+                from_='+12059648210',
+                to='+525511546778',
+            )
+            print(message.sid)
+        return super().save(*args, **kwargs)
+
+class Clave_Impresion(models.Model):
+    clave=models.PositiveIntegerField(primary_key=True)
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    class Meta:
+        verbose_name="Clave de impresión"
+        verbose_name_plural="Claves de impresión"
+
+
+class Peticion_Impresiones_Color(models.Model):
+    nombre_Emp = models.CharField(
+        max_length=30, verbose_name="Nombre")
+    ApellidoP_Emp = models.CharField(
+        max_length=30, verbose_name="Apellido Paterno")
+    ApellidoM_Emp = models.CharField(
+        max_length=30, verbose_name="Apellido Materno")
+    Clave=models.ManyToManyField(Clave_Impresion)
+    saldo=models.PositiveIntegerField()
+    Fecha = models.DateField(
+        default=datetime.date.today, verbose_name='Fecha de entrega de equipo')
+
+    class Meta:
+        verbose_name = "Petición de impresiones"
+        verbose_name_plural = "Peticiones de impresiones"
+
+
+    def save(self, *args, **kwargs):
+        if self.Status == 'Solicitado':
+            account_sid = os.environ.get('AC6882f5c66eedb6b8a6e733b24df48618')
+            auth_token = os.environ.get('70a0acdeae855e8f4843b735c8a48de2')
+            client = Client('AC6882f5c66eedb6b8a6e733b24df48618',
+                            '70a0acdeae855e8f4843b735c8a48de2')
+            message = client.messages.create(
+                body='Se ha enviado una solicitud de computadoras',
+                from_='+12059648210',
+                to='+525511546778',
+            )
+            print(message.sid)
+        return super().save(*args, **kwargs)
+
+
+
+
+
+
+
+
 
 
 
