@@ -1,0 +1,25 @@
+{% extends 'index.html' %}
+{% block title %}Orden{%endblock%}
+{%load crispy_forms_tags%}
+{%block content%}
+
+
+</style>
+{%if messages%}
+{%for message in message%}
+{%if 'info' in messages.tags%}
+<div class="round-a-gray">{{message}}</div>
+{%endif%}
+{%endfor%}
+
+
+{%endif%}
+
+<form action="" method="POST">
+    <h1>Soporte Técnico</h1>
+
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-info">Enviar</button>
+</form>
+{%endblock content%}

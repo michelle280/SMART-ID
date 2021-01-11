@@ -35,9 +35,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    #administrador interfaz
+    #Graficos
+     # this must be BEFORE 'admin_tools' and 'django.contrib.admin'
+     #administrador interfaz
+    'adminactions',
     'admin_interface',
     'colorfield',
+    #'admin_favorite',
     #Clases incluidas
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,18 +50,32 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     #formularios
-    #'multiselectfield',
     'betterforms',
     'crispy_forms',
     'materializecssform',
     #Notificaciones
     'webpush',
     'django_twilio',
-
-    #mi app
-    'apps.Almacen',
+    'phonenumber_field',
+    'django.contrib.sites',
+    'bootstrap_customizer',
+    #acciones
     'import_export',
+    'rest_framework',
+    'data_wizard',
+    'data_wizard.sources',
+    'field_history',
+    #'django-bootstrap-swt',
+    'massadmin',
+    'admin_adv_search_builder',
+    #mi app
+    'ajax_select',
+    'apps.Almacen',
+    'adminsortable2',
+    'hitcount',
+    
 ]
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 MIDDLEWARE = [
@@ -68,8 +86,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.sites.middleware.CurrentSiteMiddleware',
+    'bootstrap_customizer.middleware.BootstrapThemeMiddleware',
+    'field_history.middleware.FieldHistoryMiddleware',
 ]
-
+SITE_ID = 1
+#ADMIN_CHARTS_NVD3_JS_PATH = 'bow/nvd3/build/nv.d3.js'
+#ADMIN_CHARTS_NVD3_CSS_PATH = 'bow/nvd3/build/nv.d3.css'
+#ADMIN_CHARTS_D3_JS_PATH = 'bow/d3/d3.js'
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -184,4 +208,20 @@ TWILIO_ACCOUNT_SID = 'AC6882f5c66eedb6b8a6e733b24df48618'
 TWILIO_AUTH_TOKEN = '70a0acdeae855e8f4843b735c8a48de2'
 DJANGO_TWILIO_BLACKLIST_CHECK = True
 DJANGO_TWILIO_FORGERY_PROTECTION = False
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+
+DATA_WIZARD = {
+    'BACKEND': 'data_wizard.backends.threading',
+    'LOADER': 'data_wizard.loaders.FileLoader',
+    'IDMAP': 'data_wizard.idmap.never',   # 'data_wizard.idmap.existing' in 2.0
+    'AUTHENTICATION': 'rest_framework.authentication.SessionAuthentication',
+    'PERMISSION': 'rest_framework.permissions.IsAdminUser',
+}
 

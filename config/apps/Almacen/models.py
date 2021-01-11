@@ -7,29 +7,37 @@ from django.core.files import File
 from picklefield.fields import PickledObjectField
 from django import forms
 from django.contrib.auth.models import User
+from phonenumber_field.modelfields import PhoneNumberField
 #from multiselectfield import MultiSelectField
 import os
+from field_history.tracker import FieldHistoryTracker
 from twilio.rest import Client
 
 
+
+
+
+
 # Create your models here.
+
+
 class Computadora(models.Model):
     no_Serie_Co= models.CharField(primary_key=True,max_length=30,verbose_name="No. de serie")
     nombre_Co= models.CharField(max_length=30,verbose_name="Nombre")
     marca=models.CharField(max_length=10)
     modelo_com=models.CharField(max_length=30,verbose_name="Modelo")
-    tipo_Choice=(
-        ('pce','pcescritorio'),
-        ('lap','lap'),
+    tipo_Choices=(
+        (1, 'pcescritorio'),
+        (2, 'laptop'),
     )
-    tipo_com=models.CharField(max_length=3,choices=tipo_Choice,verbose_name="Tipo")
+    tipo_com = models.IntegerField(choices=tipo_Choices, default=1)
     Status_Choice=(
         ("disponible","disponible"),
         ("servicio","servicio"),
         ("reparacion","reparación"),
         ("destruccion","destruccion"),
     )
-    Status=models.CharField(max_length=15,choices=Status_Choice)
+    Status=models.CharField(max_length=30,choices=Status_Choice)
     Ram_Choice=(
         ('2GB','2GB'),
         ('4GB','4GB'),
@@ -49,10 +57,16 @@ class Computadora(models.Model):
     Procesador= models.CharField(max_length=20,null=True)
     Ano=models.IntegerField(verbose_name="Año",null=True)      
     qr_code= models.ImageField(upload_to='qr_codes',blank=True, null=True)
+    field_history = FieldHistoryTracker(['Status'])
+    
     def __str__(self):
         return self.no_Serie_Co
+    def __unicode__(self):
+        return self.nombre_Co
+
+    
     def save(self, *args, **kwargs):
-        dicttionary = {"Num.Serie": self.no_Serie_Co, "Nombre": self.nombre_Co, "Marca":self.marca,"Modelo":self.modelo_com,"Tipo":self.tipo_com,"Disco Duro":self.Disco_Duro,"Procesador":self.Procesador,"Ram":self.Ram}
+        dicttionary = {"Num.Serie": self.no_Serie_Co, "Nombre": self.nombre_Co, "Marca":self.marca,"Modelo":self.modelo_com,"Disco Duro":self.Disco_Duro,"Procesador":self.Procesador,"Ram":self.Ram}
         qrcode_img = qrcode.make(dicttionary)
         canvas = Image.new('RGB', (590, 590), 'white')
         draw= ImageDraw.Draw(canvas)
@@ -89,7 +103,7 @@ class Area(models.Model):
         ("SUB","Subcontratos"),
     )
     nombre_Area=models.CharField(primary_key=True,max_length=30,choices=Nombre_Area_Choice)
-    piso=models.IntegerField(max_length=1)
+    piso=models.IntegerField()
     def __str__(self):
         return self.nombre_Area
 
@@ -105,6 +119,7 @@ class Teclado(models.Model):
     )
     tipo_entrada = models.CharField(max_length=4, choices=tipo_entrada_Choice)
     qr_code = models.ImageField(upload_to='qr_codes', blank=True)
+    
     def __str__(self):
         return self.no_Serie_Te
 
@@ -132,6 +147,7 @@ class Mouse(models.Model):
     )
     tipo_entrada = models.CharField(max_length=4, choices=tipo_entrada_Choice)
     qr_code = models.ImageField(upload_to='qr_codes', blank=True)
+    
 
     def __str__(self):
         return self.no_Serie_Mo
@@ -157,6 +173,7 @@ class Monitor(models.Model):
     nombre_Pa = models.CharField(max_length=30)
     marca = models.CharField(max_length=10)
     qr_code = models.ImageField(upload_to='qr_codes', blank=True)
+    
     def __str__(self):
         return self.no_Serie_Pa
     def save(self, *args, **kwargs):
@@ -192,7 +209,9 @@ class Empleado(models.Model):
     telefono = models.BigIntegerField()
     ext=models.IntegerField(verbose_name="Extensión")
     #password = forms.CharField(max_length=32, widget=forms.PasswordInput)
-    
+
+    def __unicode__(self):
+        return self.nombre_Emp
     def __str__(self):
         return self.Id_Empleado
 class Proyecto(models.Model):
@@ -240,6 +259,7 @@ class Impresora(models.Model):
         ("destruccion", "destruccion"),
     )
     Status = models.CharField(max_length=15, choices=Status_Choice)
+    field_history = FieldHistoryTracker(['Status'])
 
     def __str__(self):
         return self.no_Serie_Im
@@ -270,6 +290,7 @@ class Celular(models.Model):
         ("destruccion", "destruccion"),
     )
     Status = models.CharField(max_length=15, choices=Status_Choice)
+    field_history = FieldHistoryTracker(['Status'])
     qr_code = models.ImageField(upload_to='qr_codes', blank=True)
 
     def __str__(self):
@@ -304,6 +325,7 @@ class Radio(models.Model):
         ("destruccion", "destruccion"),
     )
     Status = models.CharField(max_length=15, choices=Status_Choice)
+    field_history = FieldHistoryTracker(['Status'])
     qr_code = models.ImageField(upload_to='qr_codes', blank=True)
 
     def __str__(self):
@@ -360,6 +382,7 @@ class Multifuncional(models.Model):
     nombre_Mul = models.CharField(max_length=30, verbose_name="Nombre")
     marca = models.CharField(max_length=10)
     modelo_Mul = models.CharField(max_length=30, verbose_name="Modelo")
+    field_history = FieldHistoryTracker(['Status'])
     Status_Choice = (
         ("disponible", "disponible"),
         ("servicio", "servicio"),
@@ -394,6 +417,7 @@ class Proyector(models.Model):
     nombre_Pro = models.CharField(max_length=30, verbose_name="Nombre")
     marca = models.CharField(max_length=10)
     modelo_Pro = models.CharField(max_length=30, verbose_name="Modelo")
+    field_history = FieldHistoryTracker(['Status'])
     Status_Choice = (
         ("disponible", "disponible"),
         ("servicio", "servicio"),
@@ -427,6 +451,7 @@ class Eq_Vid(models.Model):
     nombre_Vid = models.CharField(max_length=30,verbose_name="Nombre")
     marca = models.CharField(max_length=10)
     modelo_Vid = models.CharField(max_length=30,verbose_name="Modelo")
+    field_history = FieldHistoryTracker(['Status'])
     Status_Choice = (
         ("disponible", "disponible"),
         ("servicio", "servicio"),
@@ -510,14 +535,14 @@ class Solicitud_Equipo(models.Model):
         ('no aplica', 'no aplica'),
     )
     monitor = models.CharField(max_length=15, choices=monitor_Choices)
-    #Aplicaciones=MultiSelectField(choices=App_Choices)
+    Aplicaciones = models.CharField(max_length=100,blank=True,null=True)
     Equipo_Adicional_choices=(
         ('IP', 'Telefonia IP'),
         ('Movil','Celular'),
         ('Radio', 'Radio'),
         ('N/A','No aplica'),
         )
-    #Equipo_Adicional = MultiSelectField(choices=Equipo_Adicional_choices)
+    #Equipo_Adicional = SelectMultipleField(max_length=20,choices=Equipo_Adicional_choices)
     Status_choice=(
         ('Solicitado','Solicitado'),
         ('En proceso','En proceso'),
@@ -525,11 +550,14 @@ class Solicitud_Equipo(models.Model):
     )
     Status= models.CharField(max_length=15,choices=Status_choice)
     Fecha_inicio=models.DateField(default=datetime.date.today,verbose_name='Fecha de entrega de equipo')
+    field_history = FieldHistoryTracker(['Status'])
 
     class Meta:
         verbose_name = 'Solicitud de Equipo'
         verbose_name_plural = 'Solicitud de Equipo'
     def save(self, *args, **kwargs):
+        if self.Aplicaciones:
+            self.Aplicaciones= eval(self.Aplicaciones)
         if self.Status=='Solicitado':
             account_sid = os.environ.get('AC6882f5c66eedb6b8a6e733b24df48618')
             auth_token = os.environ.get('70a0acdeae855e8f4843b735c8a48de2')
@@ -546,9 +574,14 @@ class Solicitud_Equipo(models.Model):
 class Clave_Impresion(models.Model):
     clave=models.PositiveIntegerField(primary_key=True)
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    def __str__(self):
+        return str(self.clave)
     class Meta:
         verbose_name="Clave de impresión"
         verbose_name_plural="Claves de impresión"
+        
+        
+    
 
 
 class Peticion_Impresiones_Color(models.Model):
@@ -561,7 +594,15 @@ class Peticion_Impresiones_Color(models.Model):
     Clave=models.ManyToManyField(Clave_Impresion)
     saldo=models.PositiveIntegerField()
     Fecha = models.DateField(
-        default=datetime.date.today, verbose_name='Fecha de entrega de equipo')
+        default=datetime.date.today, verbose_name='Fecha')
+    Status_choice=(
+        ('Solicitado','Solicitado'),
+        ('En proceso','En proceso'),
+        ('Atendida','Atendida'),
+    )
+    Status = models.CharField(
+        max_length=15, choices=Status_choice, default='Solicitado')
+    field_history = FieldHistoryTracker(['Status'])
 
     class Meta:
         verbose_name = "Petición de impresiones"
@@ -581,6 +622,92 @@ class Peticion_Impresiones_Color(models.Model):
             )
             print(message.sid)
         return super().save(*args, **kwargs)
+
+class Ordenes_Servicio(models.Model):
+    nombre_Emp = models.CharField(
+        max_length=30, verbose_name="Nombre")
+    ApellidoP_Emp = models.CharField(
+        max_length=30, verbose_name="Apellido Paterno")
+    ApellidoM_Emp = models.CharField(
+        max_length=30, verbose_name="Apellido Materno")
+    Proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+    Area = models.ForeignKey(Area, on_delete=models.CASCADE)
+    Atencion=models.OneToOneField(User,on_delete=models.CASCADE,null=True,blank=True,verbose_name="Ingeniero Responsable")
+    clasificacion_equipo_revisar_choices=(
+        ("CPU","CPU"),
+        ("LAPTOP","LAPTOP"),
+        ("TelefoniaIP","TelefoníaIP"),
+        ("Celuslar","Celular"),
+        )
+    clasificacion_equipo=models.CharField(choices=clasificacion_equipo_revisar_choices,null=True,blank=True,max_length=15,verbose_name="Equipo",)
+    tipo_atencion_choices=(
+        ("Telefónica","Telefónica"),
+        ("Remota","Remota"),
+        ("Presencial","Presencial"),
+             
+
+    )
+    tipo_atencion = models.CharField(
+        choices=tipo_atencion_choices, null=True, blank=True, max_length=15, verbose_name="Tipo de atención")
+    cuestionario_choices=(
+        ("si","si"),
+        ("no","no"),
+        ("no aplica","no aplica")
+    )
+    dano_fisico = models.CharField(choices=cuestionario_choices, max_length=10, null=True, blank=True,
+                                   help_text="El equipo presenta daño por uso o descuido", verbose_name="Daño físico")
+    retirar=models.CharField(choices=cuestionario_choices,max_length=10,null=True, blank=True,help_text="¿Se retiró el equipo?",verbose_name="Retirar equipo")
+    codigo_error=models.CharField(choices=cuestionario_choices,max_length=10,null=True, blank=True,help_text="¿Presenta código de error?")
+    solucion = models.CharField(choices=cuestionario_choices, max_length=10,
+                                help_text="¿Se soluciono la incidencia?", verbose_name="Solucion")
+    fecha_inicidencia=models.DateTimeField(auto_now_add=True)
+    fecha_resolucion = models.DateField(null=True, blank=True,)
+    reporte_usuario = models.TextField(
+        blank=True, null=True, help_text="Indique detalladamente su problema", verbose_name="Descripción de la incidencia")
+    reporte_resolucion = models.TextField(
+        blank=True,null=True, help_text="Indique detalladamente la resolución del problema", verbose_name="Descripción de la solución")
+    observaciones=models.TextField(verbose_name="Obsevaciones",null=True,blank=True)
+    Status_choice = (
+        ('Solicitado', 'Solicitado'),
+        ('En proceso', 'En proceso'),
+        ('Atendida', 'Atendida'),
+    )
+    Status = models.CharField(
+        max_length=15, choices=Status_choice, default='Solicitado',null=True,blank=True)
+    field_history = FieldHistoryTracker(['Status'])
+
+    class Meta:
+        verbose_name = "Orden de servicio"
+        verbose_name_plural = "Ordenes de servicio"
+
+    def save(self, *args, **kwargs):
+        if self.Status == 'Solicitado':
+            account_sid = os.environ.get('AC6882f5c66eedb6b8a6e733b24df48618')
+            auth_token = os.environ.get('70a0acdeae855e8f4843b735c8a48de2')
+            client = Client('AC6882f5c66eedb6b8a6e733b24df48618',
+                            '70a0acdeae855e8f4843b735c8a48de2')
+            message = client.messages.create(
+                body='Se ha enviado una orden de servicio',
+                from_='+12059648210',
+                to='+525511546778',
+            )
+            print(message.sid)
+        return super().save(*args, **kwargs)
+    
+class Contacto_directo(models.Model):
+    nombre=models.ForeignKey(User,on_delete=models.CASCADE)
+    numero_celular=PhoneNumberField(verbose_name="Número de celular")
+    
+    def __str__(self):
+        return str(self.numero_celular)
+    class Meta:
+        verbose_name="Contactos de soporte técnico"
+        verbose_name_plural="Contactos de soporte técnico"
+    #get_absolute_url
+
+    
+
+    
 
 
 

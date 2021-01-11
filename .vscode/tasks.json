@@ -1,0 +1,25 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "install",
+			"path": "env/Lib/site-packages/helpdesk/static/helpdesk/vendor/jquery-ui/",
+			"problemMatcher": [],
+			"label": "npm: install - env/Lib/site-packages/helpdesk/static/helpdesk/vendor/jquery-ui",
+			"detail": "install dependencies from package"
+		},
+		{
+			"type": "npm",
+			"script": "test",
+			"path": "env/Lib/site-packages/helpdesk/static/helpdesk/vendor/jquery-ui/",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [],
+			"label": "npm: test - env/Lib/site-packages/helpdesk/static/helpdesk/vendor/jquery-ui",
+			"detail": "grunt"
+		}
+	]
+}

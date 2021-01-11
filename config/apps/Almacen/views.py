@@ -7,7 +7,7 @@ from django.views.generic import View
 from django.contrib.auth.forms import UserCreationForm ,AuthenticationForm
 from django.contrib.auth import login, logout,authenticate
 from django.contrib import messages
-from django.views.generic import FormView
+from django.views.generic import FormView,ListView,DetailView
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
@@ -124,7 +124,28 @@ class Peticion_Impresiones_ColorFormView(FormView):
         return super().form_invalid(form)
 
 
+class Ordenes_ServicioFormFormView(FormView):
+    form_class = Ordenes_ServicioForm
+    template_name = 'Ordenes_ServicioForm.html'
 
+    def get_success_url(self):
+        return self.request.path
+
+    def form_valid(self, form):
+        form.save()
+        messages.add_message(self.request, messages.INFO,
+                             "Se ha enviado tu solicitud")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        form.add_error(None, "Tu información no es correcta,intenta de nuevo")
+        return super().form_invalid(form)
+
+
+class Contacto_directoListView(ListView):
+    model=Contacto_directo
+    template_name='contacts.html'
+    
 
 
 
